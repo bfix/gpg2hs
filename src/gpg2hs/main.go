@@ -174,6 +174,14 @@ func computeOnion(key *rsa.PublicKey) string {
  * Application entry point
  */
 func main() {
+	// welcome message
+	fmt.Println("====================================")
+	fmt.Println("GPG2HS: Convert/verify GnuPG subkeys")
+	fmt.Println("        for Tor Hidden Services v0.1")
+	fmt.Println("        (c) 2014 by Bernd Fix    >Y<")
+	fmt.Println("        Software licensed under GPL3")
+	fmt.Println("====================================")
+
 	// handle command line parameters and options
 	flag.BoolVar(&verify, "v", false, "[verify] onion address from public key")
 	flag.BoolVar(&create, "c", false, "[create] hidden service files")
@@ -215,7 +223,7 @@ func main() {
 			printEntity(e)
 			for _, sk := range e.Subkeys {
 				switch sk.PublicKey.PublicKey.(type) {
-				case*rsa.PublicKey:
+				case *rsa.PublicKey:
 					pk := sk.PublicKey.PublicKey.(*rsa.PublicKey)
 					if pk.N.BitLen() != 1024 {
 						continue
@@ -250,7 +258,7 @@ func main() {
 		var sk openpgp.Subkey
 		for _, sk = range s[0].Subkeys {
 			switch sk.PublicKey.PublicKey.(type) {
-			case*rsa.PublicKey:
+			case *rsa.PublicKey:
 				pk := sk.PublicKey.PublicKey.(*rsa.PublicKey)
 				if pk.N.BitLen() != 1024 {
 					continue
