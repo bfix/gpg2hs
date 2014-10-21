@@ -67,7 +67,7 @@ var (
  * @param e *openpgp.Entity - entity to be printed
  */
 func printEntity(e *openpgp.Entity) {
-	fmt.Printf("   KeyID: 0x%d\n", e.PrimaryKey.KeyId)
+	fmt.Printf("   KeyId: 0x%x\n", e.PrimaryKey.KeyId)
 	for n, _ := range e.Identities {
 		fmt.Printf("   UID: %s\n", n)
 	}
@@ -88,6 +88,21 @@ func expandPath(p string) string {
 		return usr.HomeDir + string(os.PathSeparator) + p[2:]
 	}
 	return p
+}
+
+//---------------------------------------------------------------------
+/*
+ * Check if a key identifier matches the given specification
+ * @param ki uint64 - key identifier (full size)
+ * @uses kMode int - key identifier mode (string, uint32, uint64)
+ * @uses kId uint64 - numeric key identifier (command line)
+ * @return bool - key ids match
+ */
+func check(ki uint64) bool {
+	if kMode == 1 {
+		ki &= 0xFFFFFFFF
+	}
+	return ki == kId
 }
 
 //---------------------------------------------------------------------
@@ -120,13 +135,15 @@ L1:
 				}
 			}
 		} else {
-			kTest := e.PrimaryKey.KeyId
-			if kMode == 1 {
-				kTest &= 0xFFFFFFFF
-			}
-			if kTest == kId {
+			if check(e.PrimaryKey.KeyId) {
 				s = append(s, e)
-				continue L1
+				continue
+			}
+			for _, sk := range e.Subkeys {
+				if check(sk.PublicKey.KeyId) {
+					s = append(s, e)
+					continue L1
+				}
 			}
 		}
 	}
@@ -196,8 +213,17 @@ func main() {
 		for i, e := range s {
 			fmt.Printf("Key #%d:\n", i+1)
 			printEntity(e)
-			onion := computeOnion(e.PrimaryKey.PublicKey.(*rsa.PublicKey))
-			fmt.Printf("   ==> Onion address is '" + onion + ".onion'\n")
+			for _, sk := range e.Subkeys {
+				switch sk.PublicKey.PublicKey.(type) {
+				case*rsa.PublicKey:
+					pk := sk.PublicKey.PublicKey.(*rsa.PublicKey)
+					if pk.N.BitLen() != 1024 {
+						continue
+					}
+					onion := computeOnion(pk)
+					fmt.Printf("   ==> Onion address is '" + onion + ".onion'\n")
+				}
+			}
 		}
 	} else if create {
 		// create Tor hidden service parameter files
@@ -217,6 +243,39 @@ func main() {
 				printEntity(e)
 			}
 			log.Fatal("Ambigious key identifier - please narrow search")
+		}
+
+		// select subkey
+		subs := make([]openpgp.Subkey, 0)
+		var sk openpgp.Subkey
+		for _, sk = range s[0].Subkeys {
+			switch sk.PublicKey.PublicKey.(type) {
+			case*rsa.PublicKey:
+				pk := sk.PublicKey.PublicKey.(*rsa.PublicKey)
+				if pk.N.BitLen() != 1024 {
+					continue
+				}
+				subs = append(subs, sk)
+				fmt.Printf("Suitable Subkey #%d: 0x%x\n", len(subs), sk.PublicKey.KeyId)
+			}
+		}
+		switch len(subs) {
+		case 0:
+			log.Fatal("No suitable subkeys found for Hidden Service")
+		case 1:
+			sk = subs[0]
+			fmt.Printf("Using subkey 0x%x\n", sk.PublicKey.KeyId)
+		default:
+			found := false
+			for _, sk := range subs {
+				if check(sk.PublicKey.KeyId) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				fmt.Printf("Multiple suitable subkeys found -- specify key identifier directly")
+			}
 		}
 
 		// correct target path specification
