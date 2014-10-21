@@ -30,6 +30,10 @@ There are two application bundled in this project:
   a single armored GnuPG private key file. Such a file can then be imported
   into a notm GnuPG keyring.
 
+*CAVEAT*: Tor hidden service are currently only able to work with 1024-bit
+RSA keys. Make sure that the keys your are using in GnuPG are RSA keys of
+the same size!
+
 Usage
 -----
 
@@ -69,8 +73,7 @@ belongs to a (known) GnuPG key:
 **`-p <pubring.gpg>`** Specify the public keyring to be used. The default
 	keyring is the standard GnuPG keyring located at `~/.gnupg/pubring.gpg` 
 
-### Create GnuPG ASCII-armored private key file from Tor hidden service
-    parameter files
+### Create GnuPG ASCII-armored private key file from Tor hidden service parameter files
 
 `hs2gpg -i <private_key> -o <key.asc>`
 
