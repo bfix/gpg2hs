@@ -77,18 +77,23 @@ belongs to a (known) GnuPG key:
 **`-p <pubring.gpg>`** Specify the public keyring to be used. The default
 	keyring is the standard GnuPG keyring located at `~/.gnupg/pubring.gpg` 
 
-### Create GnuPG ASCII-armored private key file from Tor hidden service parameter files
+### Create GnuPG private subkey file from Tor hidden service parameter files
 
-`hs2gpg -i <private_key> -o <key.asc>`
+`hs2gpg -i <private_key> -o <keyname>`
 
 #### Options
 
 **`-i <private_key>`** Tor hidden service key file to be converted. Defaults
 	to the file `private key` in the current directory.
 
-**`-o <key.asc>`** Generated GnuPG ASCII-armored private key file. The file is
-	unencrypted and ready for import into GnuPG. It defaults to the file
-	`key.asc` in the current directory.
+**`-o <key.asc>`** GnuPG private key file that defaults to `key.asc`. This file
+    needs to contain a valid GnuPG private key to which the subkey is added.
+    The file will be overridden by the new assembled key. The file can than be
+    used to import the new key into the keyring (after deleting the old key
+    in the keyring first!).
+
+*CAVEAT*: The new key file contains unprotected (unencrypted) private key
+material. After importing it into a keyring, make sure you set a passphrase
 
 Appendix A: Create suitable subkeys
 -----------------------------------
