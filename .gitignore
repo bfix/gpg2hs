@@ -22,4 +22,10 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
 /bin
+/private_key
+/key.asc
+/hostname
+/secring.gpg
+/pubring.gpg
