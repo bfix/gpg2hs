@@ -312,18 +312,23 @@ func main() {
 			if err = pk.Decrypt(pp); err != nil {
 				log.Fatal("[8]" + err.Error())
 			}
+			for _, s := range s[0].Subkeys {
+				if err = s.PrivateKey.Decrypt(pp); err != nil {
+					log.Fatal("[9]" + err.Error())
+				}
+			}
 		}
 		if pk.PrivateKey == nil {
 			log.Fatal("No private key data found")
 		}
 
-		// write `private_key` file
-		hsPrv := pk.PrivateKey.(*rsa.PrivateKey)
+		// write `private_key` file from selected subkey
+		hsPrv := sk.PrivateKey.PrivateKey.(*rsa.PrivateKey)
 		hsBytes := x509.MarshalPKCS1PrivateKey(hsPrv)
 		outK := base64.StdEncoding.EncodeToString(hsBytes)
 		fp, err = os.Create(target + "private_key")
 		if err != nil {
-			log.Fatal("[1]" + err.Error())
+			log.Fatal("[10]" + err.Error())
 		}
 		fp.WriteString("-----BEGIN RSA PRIVATE KEY-----\n")
 		for {
