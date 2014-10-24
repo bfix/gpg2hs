@@ -35,7 +35,8 @@ There are two application bundled in this project:
 RSA keys. Make sure that the subkeys you have defined in GnuPG for Hidden
 Serices are RSA keys of the same size. It is recommended (but not mandatory)
 to use RSA-1024 subkeys without usage flags, so that these subkeys will never
-be used by GnuPG itself for other purposes.
+be used by GnuPG itself for other purposes. See `Appendix A` for an example
+on how to create matching subkeys. 
 
 Usage
 -----
@@ -88,3 +89,103 @@ belongs to a (known) GnuPG key:
 **`-o <key.asc>`** Generated GnuPG ASCII-armored private key file. The file is
 	unencrypted and ready for import into GnuPG. It defaults to the file
 	`key.asc` in the current directory.
+
+Appendix A: Create suitable subkeys
+-----------------------------------
+
+Let's assume we have the following GnuPG key:
+
+    pub   2048R/BE16C48E 2014-10-24
+          Key fingerprint = 071C 5809 32BB 1E61 135F  A902 DD25 DB98 BE16 C48E
+    uid                  Allium Cepa <cepa@mail.example>
+    sub   2048R/A140F631 2014-10-24
+
+We can now create a suitable subkey:
+
+`$ gpg --expert --edit-key BE16C48E`
+
+    gpg (GnuPG) 1.4.18; Copyright (C) 2014 Free Software Foundation, Inc.
+    This is free software: you are free to change and redistribute it.
+    There is NO WARRANTY, to the extent permitted by law.
+    
+    Secret key is available.
+    
+    pub  2048R/BE16C48E  created: 2014-10-24  expires: never       usage: SC  
+                         trust: ultimate      validity: ultimate
+    sub  2048R/A140F631  created: 2014-10-24  expires: never       usage: E   
+    [ultimate] (1). Allium Cepa <cepa@mail.example>
+    
+    gpg> addkey
+    Key is protected.
+    
+    You need a passphrase to unlock the secret key for
+    user: "Allium Cepa <cepa@mail.example>"
+    2048-bit RSA key, ID BE16C48E, created 2014-10-24
+    
+    Please select what kind of key you want:
+       (3) DSA (sign only)
+       (4) RSA (sign only)
+       (5) Elgamal (encrypt only)
+       (6) RSA (encrypt only)
+       (7) DSA (set your own capabilities)
+       (8) RSA (set your own capabilities)
+    Your selection? 8
+    
+    Possible actions for a RSA key: Sign Encrypt Authenticate 
+    Current allowed actions: Sign Encrypt 
+    
+       (S) Toggle the sign capability
+       (E) Toggle the encrypt capability
+       (A) Toggle the authenticate capability
+       (Q) Finished
+    
+    Your selection? s
+    
+    Possible actions for a RSA key: Sign Encrypt Authenticate 
+    Current allowed actions: Encrypt 
+    
+       (S) Toggle the sign capability
+       (E) Toggle the encrypt capability
+       (A) Toggle the authenticate capability
+       (Q) Finished
+    
+    Your selection? e
+    
+    Possible actions for a RSA key: Sign Encrypt Authenticate 
+    Current allowed actions: 
+    
+       (S) Toggle the sign capability
+       (E) Toggle the encrypt capability
+       (A) Toggle the authenticate capability
+       (Q) Finished
+    
+    Your selection? q
+    RSA keys may be between 1024 and 4096 bits long.
+    What keysize do you want? (2048) 1024
+    Requested keysize is 1024 bits
+    Please specify how long the key should be valid.
+             0 = key does not expire
+          <n>  = key expires in n days
+          <n>w = key expires in n weeks
+          <n>m = key expires in n months
+          <n>y = key expires in n years
+    Key is valid for? (0) 
+    Key does not expire at all
+    Is this correct? (y/N) y
+    Really create? (y/N) y
+    We need to generate a lot of random bytes. It is a good idea to perform
+    some other action (type on the keyboard, move the mouse, utilize the
+    disks) during the prime generation; this gives the random number
+    generator a better chance to gain enough entropy.
+    +++++
+    +++++
+    
+    pub  2048R/BE16C48E  created: 2014-10-24  expires: never       usage: SC  
+                         trust: ultimate      validity: ultimate
+    sub  2048R/A140F631  created: 2014-10-24  expires: never       usage: E   
+    sub  1024R/AA42D3D8  created: 2014-10-24  expires: never       usage:     
+    [ultimate] (1). Allium Cepa <cepa@mail.example>
+    
+    gpg> save
+
+The newly created key `AA42D3D8` is suitable for hidden services.
