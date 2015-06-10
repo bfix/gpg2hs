@@ -24,9 +24,6 @@ package main
 
 import (
 	"bufio"
-	"code.google.com/p/go.crypto/openpgp"
-	"code.google.com/p/go.crypto/openpgp/armor"
-	"code.google.com/p/go.crypto/openpgp/packet"
 	"crypto"
 	"crypto/rsa"
 	"crypto/x509"
@@ -37,14 +34,18 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/armor"
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 ///////////////////////////////////////////////////////////////////////
 // package-global variables
 
 var (
-	keyfile   string
-	gpgkey   string
+	keyfile string
+	gpgkey  string
 )
 
 ///////////////////////////////////////////////////////////////////////
@@ -53,7 +54,7 @@ var (
 /*
  * Read RSA-1024 key from file
  * @param fName string - name of file to be read
- * @return *rsa.PrivateKey - key read from file	
+ * @return *rsa.PrivateKey - key read from file
  */
 func readHiddenServiceKey(fName string) *rsa.PrivateKey {
 	fp, err := os.Open(fName)
@@ -97,7 +98,7 @@ func readHiddenServiceKey(fName string) *rsa.PrivateKey {
 /*
  * Read GnuPG entity from file
  * @param fName string - name of file to be read
- * @return *rsa.PrivateKey - key read from file	
+ * @return *rsa.PrivateKey - key read from file
  */
 func readGpgKey(fName string) *openpgp.Entity {
 	fp, err := os.Open(fName)
@@ -135,7 +136,7 @@ func main() {
 
 	// read hiden service key
 	subKey := readHiddenServiceKey(keyfile)
-	
+
 	// read GnuPG entity file
 	ent := readGpgKey(gpgkey)
 	pk := ent.PrivateKey
@@ -159,18 +160,18 @@ func main() {
 	now := time.Now()
 	pubKey := packet.NewRSAPublicKey(now, &subKey.PublicKey)
 	sig := packet.Signature{
-		Hash: crypto.SHA256,
+		Hash:       crypto.SHA256,
 		PubKeyAlgo: pubKey.PubKeyAlgo,
 	}
-	
+
 	if err := sig.SignKey(pubKey, pk, nil); err != nil {
 		log.Fatal("[6]" + err.Error())
 	}
 	sub := openpgp.Subkey{
-		PublicKey: pubKey,
+		PublicKey:  pubKey,
 		PrivateKey: packet.NewRSAPrivateKey(now, subKey),
-		Sig: &sig,
-	} 
+		Sig:        &sig,
+	}
 	// add subkey to entity
 	ent.Subkeys = append(ent.Subkeys, sub)
 
