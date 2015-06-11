@@ -26,7 +26,6 @@ package main
 
 import (
 	"bufio"
-	"code.google.com/p/go.crypto/openpgp"
 	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/x509"
@@ -40,6 +39,8 @@ import (
 	"os/user"
 	"strconv"
 	"strings"
+
+	"golang.org/x/crypto/openpgp"
 )
 
 ///////////////////////////////////////////////////////////////////////
